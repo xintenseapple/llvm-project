@@ -701,6 +701,26 @@ def ArmBuiltinAlias : InheritableAttr, TargetSpecificAttr<TargetAnyArm> {
   let Documentation = [ArmBuiltinAliasDocs];
 }
 
+def Nopfuscate : Attr {
+  let Spellings = [Pragma<"", "nopfuscate">];
+  let Args = [EnumArgument<"Option", "OptionType",
+                          ["opaque_predicate"],
+                          ["opaque_predicate"]>,
+              ExprArgument<"ValueF">, ExprArgument<"Value">];
+  let AdditionalMembers = [{
+  static const char *getOptionName(int Option) {
+    switch(Option) {
+    case opaque_predicate: return "opaque_predicate";
+    }
+    llvm_unreachable("Unhandled Nopfuscate option.");
+  }
+    void printPrettyPragma(raw_ostream &OS, const PrintingPolicy &Policy) const {
+      return;
+    }
+  }];
+  let Documentation = [NopfuscateDocs];
+}
+
 def Aligned : InheritableAttr {
   let Spellings = [GCC<"aligned">, Declspec<"align">, Keyword<"alignas">,
                    Keyword<"_Alignas">];

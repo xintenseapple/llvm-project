@@ -3234,6 +3234,14 @@ compatibility diagnostic.
   }];
 }
 
+def NopfuscateDocs : Documentation {
+  let Category = DocCatStmt;
+  let Heading = "#pragma nopfuscate";
+  let Content = [{
+The ``#pragma nopfuscate`` directive marks a method for obfuscation within multibyte NOP instructions.
+  }];
+}
+
 def AlignValueDocs : Documentation {
   let Category = DocCatType;
   let Content = [{

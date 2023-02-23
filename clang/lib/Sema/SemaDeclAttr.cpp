@@ -4285,6 +4285,10 @@ static void handleAnnotateAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   S.AddAnnotationAttr(D, AL, Str, Args);
 }
 
+static void handleNopfuscateAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
+  printf("WORKS!!!\n");
+}
+
 static void handleAlignValueAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   S.AddAlignValueAttr(D, AL, AL.getArgAsExpr(0));
 }
@@ -8750,6 +8754,9 @@ ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D, const ParsedAttr &AL,
     break;
   case ParsedAttr::AT_Alias:
     handleAliasAttr(S, D, AL);
+    break;
+  case ParsedAttr::AT_Nopfuscate:
+    handleNopfuscateAttr(S, D, AL);
     break;
   case ParsedAttr::AT_Aligned:
     handleAlignedAttr(S, D, AL);

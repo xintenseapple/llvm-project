@@ -27,6 +27,12 @@ using namespace clang;
 
 namespace {
 
+struct PragmaNopfuscateHandler : public PragmaHandler {
+  explicit PragmaNopfuscateHandler () : PragmaHandler("nopfuscate") {}
+  void HandlePragma(Preprocessor &PP, PragmaIntroducer Introducer,
+                    Token &FirstToken) override;
+};
+
 struct PragmaAlignHandler : public PragmaHandler {
   explicit PragmaAlignHandler() : PragmaHandler("align") {}
   void HandlePragma(Preprocessor &PP, PragmaIntroducer Introducer,
@@ -368,6 +374,9 @@ void markAsReinjectedForRelexing(llvm::MutableArrayRef<clang::Token> Toks) {
 }  // end namespace
 
 void Parser::initializePragmaHandlers() {
+  NopfuscateHandler = std::make_unique<PragmaNopfuscateHandler>();
+  PP.AddPragmaHandler(NopfuscateHandler.get());
+
   AlignHandler = std::make_unique<PragmaAlignHandler>();
   PP.AddPragmaHandler(AlignHandler.get());
 
@@ -516,6 +525,8 @@ void Parser::initializePragmaHandlers() {
 
 void Parser::resetPragmaHandlers() {
   // Remove the pragma handlers we installed.
+  PP.RemovePragmaHandler(NopfuscateHandler.get());
+  NopfuscateHandler.reset();
   PP.RemovePragmaHandler(AlignHandler.get());
   AlignHandler.reset();
   PP.RemovePragmaHandler("GCC", GCCVisibilityHandler.get());
@@ -698,6 +709,15 @@ void Parser::HandlePragmaMSStruct() {
   PragmaMSStructKind Kind = static_cast<PragmaMSStructKind>(
       reinterpret_cast<uintptr_t>(Tok.getAnnotationValue()));
   Actions.ActOnPragmaMSStruct(Kind);
+  ConsumeAnnotationToken();
+}
+
+void Parser::HandlePragmaNopfuscate() {
+  assert(Tok.is(tok::annot_pragma_nopfuscate));
+  Sema::PragmaNopfuscateKind Kind = static_cast<Sema::PragmaNopfuscateKind>(
+      reinterpret_cast<uintptr_t>(Tok.getAnnotationValue()));
+
+  Actions.ActOnPragmaNopfuscate(Kind, Tok.getLocation());
   ConsumeAnnotationToken();
 }
 
@@ -2221,6 +2241,55 @@ void PragmaClangSectionHandler::HandlePragma(Preprocessor &PP,
   }
 }
 
+namespace {
+enum CallObfuscationType { OpaquePredicate };
+
+struct NopfuscateInfo {
+  CallObfuscationType ObfuscationType;
+};
+} // end anonymous namespace
+
+// # pragma nopfuscate opaque_predicate
+static void ParseNopfuscatePragma(Preprocessor &PP, Token &FirstTok,
+                                  bool IsOptions) {
+  Token Tok;
+
+  PP.Lex(Tok);
+  if (Tok.isNot(tok::identifier)) {
+    PP.Diag(Tok.getLocation(), diag::warn_pragma_expected_identifier);
+    return;
+  }
+
+  auto *Info = new (PP.getPreprocessorAllocator()) NopfuscateInfo;
+
+  const IdentifierInfo *II = Tok.getIdentifierInfo();
+  if (II->isStr("opaque_predicate"))
+    Info->ObfuscationType = CallObfuscationType::OpaquePredicate;
+  else {
+    PP.Diag(Tok.getLocation(), diag::warn_pragma_invalid_argument)
+        << II->getName();
+    return;
+  }
+
+  SourceLocation EndLoc = Tok.getLocation();
+  PP.Lex(Tok);
+  if (Tok.isNot(tok::eod)) {
+    PP.Diag(Tok.getLocation(), diag::warn_pragma_extra_tokens_at_eol)
+        << "nopfuscate";
+    return;
+  }
+
+  MutableArrayRef<Token> Toks(PP.getPreprocessorAllocator().Allocate<Token>(1),
+                              1);
+  Toks[0].startToken();
+  Toks[0].setKind(tok::annot_pragma_nopfuscate);
+  Toks[0].setLocation(FirstTok.getLocation());
+  Toks[0].setAnnotationEndLoc(EndLoc);
+  Toks[0].setAnnotationValue(reinterpret_cast<void*>(Info));
+  PP.EnterTokenStream(Toks, /*DisableMacroExpansion=*/true,
+                      /*IsReinject=*/false);
+}
+
 // #pragma 'align' '=' {'native','natural','mac68k','power','reset'}
 // #pragma 'options 'align' '=' {'native','natural','mac68k','power','reset'}
 // #pragma 'align' '(' {'native','natural','mac68k','power','reset'} ')'
@@ -2302,6 +2371,12 @@ static void ParseAlignPragma(Preprocessor &PP, Token &FirstTok,
                              static_cast<uintptr_t>(Kind)));
   PP.EnterTokenStream(Toks, /*DisableMacroExpansion=*/true,
                       /*IsReinject=*/false);
+}
+
+void PragmaNopfuscateHandler::HandlePragma(Preprocessor &PP,
+                                           PragmaIntroducer Introducer,
+                                           Token &AlignTok) {
+  ParseNopfuscatePragma(PP, AlignTok, /*IsOptions=*/false);
 }
 
 void PragmaAlignHandler::HandlePragma(Preprocessor &PP,

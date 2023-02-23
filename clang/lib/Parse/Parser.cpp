@@ -811,6 +811,9 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
   case tok::annot_pragma_msstruct:
     HandlePragmaMSStruct();
     return nullptr;
+  case tok::annot_pragma_nopfuscate:
+    HandlePragmaNopfuscate();
+    return nullptr;
   case tok::annot_pragma_align:
     HandlePragmaAlign();
     return nullptr;

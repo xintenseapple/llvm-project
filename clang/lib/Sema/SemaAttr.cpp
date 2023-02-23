@@ -215,6 +215,13 @@ void Sema::inferGslOwnerPointerAttribute(CXXRecordDecl *Record) {
   inferGslPointerAttribute(Record, Record);
 }
 
+void Sema::ActOnPragmaNopfuscate(PragmaNopfuscateKind Kind,
+                                 SourceLocation PragmaLoc) {
+  // TODO: This
+  printf("THIS SHIT WORKS!\n");
+  return;
+}
+
 void Sema::ActOnPragmaOptionsAlign(PragmaOptionsAlignKind Kind,
                                    SourceLocation PragmaLoc) {
   PragmaMsStackAction Action = Sema::PSK_Reset;
