@@ -712,20 +712,13 @@ void Parser::HandlePragmaMSStruct() {
   ConsumeAnnotationToken();
 }
 
-namespace {
-struct PragmaNopfuscateInfo {
-  Sema::PragmaNopfuscateObfuscationKind ObfuscationKind;
-  llvm::StringRef RawObfuscationTypeStr;
-};
-} // namespace
-
 void Parser::HandlePragmaNopfuscate() {
   assert(Tok.is(tok::annot_pragma_nopfuscate));
-  PragmaNopfuscateInfo *Info =
-      static_cast<PragmaNopfuscateInfo*>(Tok.getAnnotationValue());
+  Sema::PragmaNopfuscateObfuscationKind Kind =
+      static_cast<Sema::PragmaNopfuscateObfuscationKind>(
+          reinterpret_cast<uintptr_t>(Tok.getAnnotationValue()));
 
-  Actions.ActOnPragmaNopfuscate(Tok.getLocation(), Info->ObfuscationKind,
-                                Info->RawObfuscationTypeStr);
+  Actions.ActOnPragmaNopfuscate(Tok.getLocation(), Kind);
   ConsumeAnnotationToken();
 }
 
@@ -2253,7 +2246,6 @@ void PragmaClangSectionHandler::HandlePragma(Preprocessor &PP,
 static void ParseNopfuscatePragma(Preprocessor &PP, Token &FirstTok,
                                   bool IsOptions) {
   Sema::PragmaNopfuscateObfuscationKind ObfuscationKind;
-  StringRef RawObfuscationTypeStr;
 
   Token Tok;
   PP.Lex(Tok);
@@ -2266,7 +2258,6 @@ static void ParseNopfuscatePragma(Preprocessor &PP, Token &FirstTok,
           << II->getName();
       return;
     }
-    RawObfuscationTypeStr = II->getName().copy(PP.getPreprocessorAllocator());
   }
   else {
     PP.Diag(Tok.getLocation(), diag::warn_pragma_nopfuscate_expected_option);
@@ -2280,18 +2271,14 @@ static void ParseNopfuscatePragma(Preprocessor &PP, Token &FirstTok,
         << "nopfuscate";
   }
 
-  PragmaNopfuscateInfo *Info =
-      PP.getPreprocessorAllocator().Allocate<PragmaNopfuscateInfo>(1);
-  Info->ObfuscationKind = ObfuscationKind;
-  Info->RawObfuscationTypeStr = RawObfuscationTypeStr;
-
   MutableArrayRef<Token> Toks(PP.getPreprocessorAllocator().Allocate<Token>(1),
                               1);
   Toks[0].startToken();
   Toks[0].setKind(tok::annot_pragma_nopfuscate);
   Toks[0].setLocation(FirstTok.getLocation());
   Toks[0].setAnnotationEndLoc(EndLoc);
-  Toks[0].setAnnotationValue(static_cast<void*>(Info));
+  Toks[0].setAnnotationValue(reinterpret_cast<void*>(
+                                 static_cast<uintptr_t>(ObfuscationKind)));
   PP.EnterTokenStream(Toks, /*DisableMacroExpansion=*/true,
                       /*IsReinject=*/false);
 }

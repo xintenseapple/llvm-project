@@ -388,12 +388,12 @@ void Sema::ActOnPragmaPack(SourceLocation PragmaLoc, PragmaMsStackAction Action,
 }
 
 void Sema::ActOnPragmaNopfuscate(SourceLocation PragmaLoc,
-                                 Sema::PragmaNopfuscateObfuscationKind ObfuscationKind,
-                                 StringRef RawObfuscationKind) {
-  printf("Semantic acting on nopfuscate pragma!\n");
+                                 Sema::PragmaNopfuscateObfuscationKind ObfuscationKind) {
+  printf("Semantic analysis now acting on nopfuscate pragma!\n");
   switch (ObfuscationKind) {
   case PNOK_Opaque_Predicate:
     // TODO
+    printf("Acting on nopfuscate pragma with obfuscation type 'opaque_predicate'\n");
     break;
   }
 

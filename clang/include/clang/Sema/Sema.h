@@ -10587,8 +10587,7 @@ public:
 
   /// ActOnPragmaNopfuscate - Called on well formed \#pragma nopfuscate...
   void ActOnPragmaNopfuscate(SourceLocation PragmaLoc,
-                             Sema::PragmaNopfuscateObfuscationKind ObfuscationKind,
-                             StringRef RawObfuscationKind);
+                             Sema::PragmaNopfuscateObfuscationKind ObfuscationKind);
 
   /// ActOnPragmaOptionsAlign - Called on well formed \#pragma options align.
   void ActOnPragmaOptionsAlign(PragmaOptionsAlignKind Kind,
