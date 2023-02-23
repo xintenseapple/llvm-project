@@ -10567,10 +10567,6 @@ public:
                                 ObjCInterfaceDecl *CurrentClass,
                                 ResultTypeCompatibilityKind RTC);
 
-  enum PragmaNopfuscateKind {
-    PNK_Opaque_Predicate  // # pragma nopfuscate opaque_predicate
-  };
-
   enum PragmaOptionsAlignKind {
     POAK_Native,  // #pragma options align=native
     POAK_Natural, // #pragma options align=natural
@@ -10585,9 +10581,14 @@ public:
                                PragmaClangSectionAction Action,
                                PragmaClangSectionKind SecKind, StringRef SecName);
 
+  enum PragmaNopfuscateObfuscationKind {
+    PNOK_Opaque_Predicate,  // # pragma nopfuscate opaque_predicate
+  };
+
   /// ActOnPragmaNopfuscate - Called on well formed \#pragma nopfuscate...
-  void ActOnPragmaNopfuscate(PragmaNopfuscateKind Kind,
-                             SourceLocation PragmaLoc);
+  void ActOnPragmaNopfuscate(SourceLocation PragmaLoc,
+                             Sema::PragmaNopfuscateObfuscationKind ObfuscationKind,
+                             StringRef RawObfuscationKind);
 
   /// ActOnPragmaOptionsAlign - Called on well formed \#pragma options align.
   void ActOnPragmaOptionsAlign(PragmaOptionsAlignKind Kind,

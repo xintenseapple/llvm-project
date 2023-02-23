@@ -712,12 +712,20 @@ void Parser::HandlePragmaMSStruct() {
   ConsumeAnnotationToken();
 }
 
+namespace {
+struct PragmaNopfuscateInfo {
+  Sema::PragmaNopfuscateObfuscationKind ObfuscationKind;
+  llvm::StringRef RawObfuscationTypeStr;
+};
+} // namespace
+
 void Parser::HandlePragmaNopfuscate() {
   assert(Tok.is(tok::annot_pragma_nopfuscate));
-  Sema::PragmaNopfuscateKind Kind = static_cast<Sema::PragmaNopfuscateKind>(
-      reinterpret_cast<uintptr_t>(Tok.getAnnotationValue()));
+  PragmaNopfuscateInfo *Info =
+      static_cast<PragmaNopfuscateInfo*>(Tok.getAnnotationValue());
 
-  Actions.ActOnPragmaNopfuscate(Kind, Tok.getLocation());
+  Actions.ActOnPragmaNopfuscate(Tok.getLocation(), Info->ObfuscationKind,
+                                Info->RawObfuscationTypeStr);
   ConsumeAnnotationToken();
 }
 
@@ -2241,33 +2249,27 @@ void PragmaClangSectionHandler::HandlePragma(Preprocessor &PP,
   }
 }
 
-namespace {
-enum CallObfuscationType { OpaquePredicate };
-
-struct NopfuscateInfo {
-  CallObfuscationType ObfuscationType;
-};
-} // end anonymous namespace
-
 // # pragma nopfuscate opaque_predicate
 static void ParseNopfuscatePragma(Preprocessor &PP, Token &FirstTok,
                                   bool IsOptions) {
+  Sema::PragmaNopfuscateObfuscationKind ObfuscationKind;
+  StringRef RawObfuscationTypeStr;
+
   Token Tok;
-
   PP.Lex(Tok);
-  if (Tok.isNot(tok::identifier)) {
-    PP.Diag(Tok.getLocation(), diag::warn_pragma_expected_identifier);
-    return;
+  if (Tok.is(tok::identifier)) {
+    const IdentifierInfo *II = Tok.getIdentifierInfo();
+    if (II->isStr("opaque_predicate"))
+      ObfuscationKind = Sema::PNOK_Opaque_Predicate;
+    else {
+      PP.Diag(Tok.getLocation(), diag::warn_pragma_nopfuscate_invalid_option)
+          << II->getName();
+      return;
+    }
+    RawObfuscationTypeStr = II->getName().copy(PP.getPreprocessorAllocator());
   }
-
-  auto *Info = new (PP.getPreprocessorAllocator()) NopfuscateInfo;
-
-  const IdentifierInfo *II = Tok.getIdentifierInfo();
-  if (II->isStr("opaque_predicate"))
-    Info->ObfuscationType = CallObfuscationType::OpaquePredicate;
   else {
-    PP.Diag(Tok.getLocation(), diag::warn_pragma_invalid_argument)
-        << II->getName();
+    PP.Diag(Tok.getLocation(), diag::warn_pragma_nopfuscate_expected_option);
     return;
   }
 
@@ -2276,8 +2278,12 @@ static void ParseNopfuscatePragma(Preprocessor &PP, Token &FirstTok,
   if (Tok.isNot(tok::eod)) {
     PP.Diag(Tok.getLocation(), diag::warn_pragma_extra_tokens_at_eol)
         << "nopfuscate";
-    return;
   }
+
+  PragmaNopfuscateInfo *Info =
+      PP.getPreprocessorAllocator().Allocate<PragmaNopfuscateInfo>(1);
+  Info->ObfuscationKind = ObfuscationKind;
+  Info->RawObfuscationTypeStr = RawObfuscationTypeStr;
 
   MutableArrayRef<Token> Toks(PP.getPreprocessorAllocator().Allocate<Token>(1),
                               1);
@@ -2285,7 +2291,7 @@ static void ParseNopfuscatePragma(Preprocessor &PP, Token &FirstTok,
   Toks[0].setKind(tok::annot_pragma_nopfuscate);
   Toks[0].setLocation(FirstTok.getLocation());
   Toks[0].setAnnotationEndLoc(EndLoc);
-  Toks[0].setAnnotationValue(reinterpret_cast<void*>(Info));
+  Toks[0].setAnnotationValue(static_cast<void*>(Info));
   PP.EnterTokenStream(Toks, /*DisableMacroExpansion=*/true,
                       /*IsReinject=*/false);
 }
