@@ -2850,6 +2850,27 @@ static void handleExternalSourceSymbolAttr(Sema &S, Decl *D,
 }
 
 template <class T>
+static T *mergeNopfuscateAttr(Sema &S, Decl *D, const AttributeCommonInfo &CI,
+                               typename T::ObfuscationType value) {
+  T *existingAttr = D->getAttr<T>();
+  if (existingAttr) {
+    typename T::ObfuscationType existingValue = existingAttr->getObfuscationType();
+    if (existingValue == value)
+      return nullptr;
+    S.Diag(existingAttr->getLocation(), diag::err_mismatched_visibility);
+    S.Diag(CI.getLoc(), diag::note_previous_attribute);
+    D->dropAttr<T>();
+  }
+  return ::new (S.Context) T(S.Context, CI, value);
+}
+
+NopfuscateAttr *Sema::mergeNopfuscateAttr(Decl *D,
+                                          const AttributeCommonInfo &CI,
+                                          NopfuscateAttr::ObfuscationType ObfuscationType) {
+  return ::mergeNopfuscateAttr<NopfuscateAttr>(*this, D, CI, ObfuscationType);
+}
+
+template <class T>
 static T *mergeVisibilityAttr(Sema &S, Decl *D, const AttributeCommonInfo &CI,
                               typename T::VisibilityType value) {
   T *existingAttr = D->getAttr<T>();
@@ -4285,10 +4306,6 @@ static void handleAnnotateAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   S.AddAnnotationAttr(D, AL, Str, Args);
 }
 
-static void handleNopfuscateAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
-  printf("WORKS!!!\n");
-}
-
 static void handleAlignValueAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   S.AddAlignValueAttr(D, AL, AL.getArgAsExpr(0));
 }
@@ -4897,6 +4914,25 @@ OptimizeNoneAttr *Sema::mergeOptimizeNoneAttr(Decl *D,
     return nullptr;
 
   return ::new (Context) OptimizeNoneAttr(Context, CI);
+}
+
+static void handleNopfuscateAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
+  StringRef TypeStr;
+  SourceLocation LiteralLoc;
+  if (!S.checkStringLiteralArgumentAttr(AL, 0, TypeStr, &LiteralLoc))
+    return;
+
+  NopfuscateAttr::ObfuscationType type;
+  if (!NopfuscateAttr::ConvertStrToObfuscationType(TypeStr, type)) {
+    S.Diag(LiteralLoc, diag::warn_attribute_type_not_supported) << AL
+                                                                << TypeStr;
+    return;
+  }
+
+  Attr *newAttr;
+  newAttr = S.mergeNopfuscateAttr(D, AL, type);
+  if (newAttr)
+    D->addAttr(newAttr);
 }
 
 static void handleAlwaysInlineAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
@@ -8755,9 +8791,6 @@ ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D, const ParsedAttr &AL,
   case ParsedAttr::AT_Alias:
     handleAliasAttr(S, D, AL);
     break;
-  case ParsedAttr::AT_Nopfuscate:
-    handleNopfuscateAttr(S, D, AL);
-    break;
   case ParsedAttr::AT_Aligned:
     handleAlignedAttr(S, D, AL);
     break;
@@ -8766,6 +8799,9 @@ ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D, const ParsedAttr &AL,
     break;
   case ParsedAttr::AT_AllocSize:
     handleAllocSizeAttr(S, D, AL);
+    break;
+  case ParsedAttr::AT_Nopfuscate:
+    handleNopfuscateAttr(S, D, AL);
     break;
   case ParsedAttr::AT_AlwaysInline:
     handleAlwaysInlineAttr(S, D, AL);

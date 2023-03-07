@@ -43,6 +43,9 @@ class StrBoolAttr<string S> : Attr<S, []>;
 
 /// Target-independent enum attributes.
 
+/// Nopfuscate a function
+def Nopfuscate : EnumAttr<"nopfuscate", [FnAttr]>;
+
 /// Alignment of parameter (5 bits) stored as log2 of alignment with +1 bias.
 /// 0 means unaligned (different from align(1)).
 def Alignment : IntAttr<"align", [ParamAttr, RetAttr]>;

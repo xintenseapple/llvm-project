@@ -3628,6 +3628,8 @@ public:
   };
 
   /// Attribute merging methods. Return true if a new attribute was added.
+  NopfuscateAttr* mergeNopfuscateAttr(Decl *D, const AttributeCommonInfo &CI,
+                                      NopfuscateAttr::ObfuscationType ObfuscationType);
   AvailabilityAttr *
   mergeAvailabilityAttr(NamedDecl *D, const AttributeCommonInfo &CI,
                         IdentifierInfo *Platform, bool Implicit,
@@ -10580,14 +10582,6 @@ public:
   void ActOnPragmaClangSection(SourceLocation PragmaLoc,
                                PragmaClangSectionAction Action,
                                PragmaClangSectionKind SecKind, StringRef SecName);
-
-  enum PragmaNopfuscateObfuscationKind {
-    PNOK_Opaque_Predicate,  // # pragma nopfuscate opaque_predicate
-  };
-
-  /// ActOnPragmaNopfuscate - Called on well formed \#pragma nopfuscate...
-  void ActOnPragmaNopfuscate(SourceLocation PragmaLoc,
-                             Sema::PragmaNopfuscateObfuscationKind ObfuscationKind);
 
   /// ActOnPragmaOptionsAlign - Called on well formed \#pragma options align.
   void ActOnPragmaOptionsAlign(PragmaOptionsAlignKind Kind,

@@ -701,23 +701,21 @@ def ArmBuiltinAlias : InheritableAttr, TargetSpecificAttr<TargetAnyArm> {
   let Documentation = [ArmBuiltinAliasDocs];
 }
 
-def Nopfuscate : Attr {
-  let Spellings = [Pragma<"", "nopfuscate">];
-  let Args = [EnumArgument<"Option", "OptionType",
-                          ["opaque_predicate"],
-                          ["opaque_predicate"]>,
-              ExprArgument<"ValueF">, ExprArgument<"Value">];
-  let AdditionalMembers = [{
-  static const char *getOptionName(int Option) {
-    switch(Option) {
-    case opaque_predicate: return "opaque_predicate";
-    }
-    llvm_unreachable("Unhandled Nopfuscate option.");
-  }
-    void printPrettyPragma(raw_ostream &OS, const PrintingPolicy &Policy) const {
-      return;
-    }
-  }];
+def Nopfuscate : DeclOrStmtAttr, TargetSpecificAttr<TargetAnyX86> {
+  let Spellings = [GNU<"nopfuscate">,
+                   C2x<"nopfuscate", "obfuscate">, CXX11<"nopfuscate", "obfuscate">,
+                   Declspec<"nopfuscate">];
+
+  let Accessors = [Accessor<"isGNU", [GNU<"nopfuscate">]>,
+                   Accessor<"isC2x", [C2x<"nopfuscate", "obfuscate">]>,
+                   Accessor<"isC11", [CXX11<"nopfuscate", "obfuscate">]>,
+                   Accessor<"isDeclspec", [Declspec<"nopfuscate">]>];
+
+  let Args = [EnumArgument<"ObfuscationType", "ObfuscationType",
+                           ["opaque_predicate"],
+                           ["opaque_predicate"]>];
+
+  let Subjects = SubjectList<[Function], ErrorDiag, "functions">;
   let Documentation = [NopfuscateDocs];
 }
 

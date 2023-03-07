@@ -3234,14 +3234,6 @@ compatibility diagnostic.
   }];
 }
 
-def NopfuscateDocs : Documentation {
-  let Category = DocCatStmt;
-  let Heading = "#pragma nopfuscate";
-  let Content = [{
-The ``#pragma nopfuscate`` directive marks a method for obfuscation within multibyte NOP instructions.
-  }];
-}
-
 def AlignValueDocs : Documentation {
   let Category = DocCatType;
   let Content = [{
@@ -6502,6 +6494,14 @@ to and from secure state, respectively, and prevent flow of information
 to non-secure state, except via return values. See `ARMv8-M Security Extensions:
 Requirements on Development Tools - Engineering Specification Documentation
 <https://developer.arm.com/docs/ecm0359818/latest/>`_ for more information.
+  }];
+}
+
+def NopfuscateDocs : Documentation {
+  let Category = DocCatStmt;
+  let Heading = "nopfuscate";
+  let Content = [{
+The ``[[clang::always_inline]]`` attribute marks a function for obfuscation within multibyte NOP instructions.
   }];
 }
 

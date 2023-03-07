@@ -387,20 +387,6 @@ void Sema::ActOnPragmaPack(SourceLocation PragmaLoc, PragmaMsStackAction Action,
   AlignPackStack.Act(PragmaLoc, Action, SlotLabel, Info);
 }
 
-void Sema::ActOnPragmaNopfuscate(SourceLocation PragmaLoc,
-                                 Sema::PragmaNopfuscateObfuscationKind ObfuscationKind) {
-  printf("Semantic analysis now acting on nopfuscate pragma!\n");
-  switch (ObfuscationKind) {
-  case PNOK_Opaque_Predicate:
-    // TODO
-    printf("Acting on nopfuscate pragma with obfuscation type 'opaque_predicate'\n");
-    break;
-  }
-
-  // TODO
-  return;
-}
-
 bool Sema::ConstantFoldAttrArgs(const AttributeCommonInfo &CI,
                                 MutableArrayRef<Expr *> Args) {
   llvm::SmallVector<PartialDiagnosticAt, 8> Notes;

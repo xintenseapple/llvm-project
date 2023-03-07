@@ -442,6 +442,9 @@ std::string Attribute::getAsString(bool InAttrGrp) const {
         .str();
   };
 
+  if (hasAttribute(Attribute::Nopfuscate))
+    return AttrWithBytesToString("nopfuscate");
+
   if (hasAttribute(Attribute::StackAlignment))
     return AttrWithBytesToString("alignstack");
 

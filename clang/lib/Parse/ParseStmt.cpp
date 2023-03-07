@@ -385,12 +385,6 @@ Retry:
     HandlePragmaMSStruct();
     return StmtEmpty();
 
-  case tok::annot_pragma_nopfuscate:
-    ProhibitAttributes(CXX11Attrs);
-    ProhibitAttributes(GNUAttrs);
-    HandlePragmaNopfuscate();
-    return StmtEmpty();
-
   case tok::annot_pragma_align:
     ProhibitAttributes(CXX11Attrs);
     ProhibitAttributes(GNUAttrs);
