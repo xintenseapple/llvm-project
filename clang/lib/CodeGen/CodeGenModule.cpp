@@ -2161,6 +2161,13 @@ void CodeGenModule::SetLLVMFunctionAttributesForDefinition(const Decl *D,
       F->addTypeMetadata(0, Id);
     }
   }
+
+  // Add nopfuscate attribute if present on function declaration
+  if (const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D)) {
+    if (FD->hasAttr<NopfuscateAttr>()) {
+      B.addAttribute(llvm::Attribute::Nopfuscate);
+    }
+  }
 }
 
 void CodeGenModule::setLLVMFunctionFEnvAttributes(const FunctionDecl *D,

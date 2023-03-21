@@ -703,17 +703,18 @@ def ArmBuiltinAlias : InheritableAttr, TargetSpecificAttr<TargetAnyArm> {
 
 def Nopfuscate : DeclOrStmtAttr, TargetSpecificAttr<TargetAnyX86> {
   let Spellings = [GNU<"nopfuscate">,
-                   C2x<"nopfuscate", "obfuscate">, CXX11<"nopfuscate", "obfuscate">,
+                   C2x<"obfuscate", "nopfuscate">,
+                   CXX11<"obfuscate", "nopfuscate">,
                    Declspec<"nopfuscate">];
 
   let Accessors = [Accessor<"isGNU", [GNU<"nopfuscate">]>,
-                   Accessor<"isC2x", [C2x<"nopfuscate", "obfuscate">]>,
-                   Accessor<"isC11", [CXX11<"nopfuscate", "obfuscate">]>,
+                   Accessor<"isC2x", [C2x<"obfuscate", "nopfuscate">]>,
+                   Accessor<"isC11", [CXX11<"obfuscate", "nopfuscate">]>,
                    Accessor<"isDeclspec", [Declspec<"nopfuscate">]>];
 
   let Args = [EnumArgument<"ObfuscationType", "ObfuscationType",
-                           ["opaque_predicate"],
-                           ["opaque_predicate"]>];
+                           ["opaque_predicate", "none"],
+                           ["opaque_predicate", "none"]>];
 
   let Subjects = SubjectList<[Function], ErrorDiag, "functions">;
   let Documentation = [NopfuscateDocs];
