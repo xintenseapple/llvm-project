@@ -462,6 +462,7 @@ static std::string fflagsToString(FunctionSummary::FFlags F) {
                     FlagValue(F.MayThrow),
                     FlagValue(F.HasUnknownCall),
                     FlagValue(F.MustBeUnreachable),
+                    FlagValue(F.ShouldNopfuscate),
                     0};
 
   return FlagRep;

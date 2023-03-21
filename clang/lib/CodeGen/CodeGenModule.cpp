@@ -2011,6 +2011,10 @@ void CodeGenModule::SetLLVMFunctionAttributesForDefinition(const Decl *D,
   if (!hasUnwindExceptions(LangOpts))
     B.addAttribute(llvm::Attribute::NoUnwind);
 
+  // TODO: nopfuscate forcefully implies noinline!
+  if (D->hasAttr<NopfuscateAttr>())
+    B.addAttribute(llvm::Attribute::Nopfuscate);
+
   if (D && D->hasAttr<NoStackProtectorAttr>())
     ; // Do nothing.
   else if (D && D->hasAttr<StrictGuardStackCheckAttr>() &&

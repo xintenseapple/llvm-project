@@ -662,6 +662,9 @@ public:
     // if this bit is off, the function might be reachable or unreachable.
     unsigned MustBeUnreachable : 1;
 
+    // Indicate that the function should be nopfuscated
+    unsigned ShouldNopfuscate : 1;
+
     FFlags &operator&=(const FFlags &RHS) {
       this->ReadNone &= RHS.ReadNone;
       this->ReadOnly &= RHS.ReadOnly;
@@ -673,6 +676,7 @@ public:
       this->MayThrow &= RHS.MayThrow;
       this->HasUnknownCall &= RHS.HasUnknownCall;
       this->MustBeUnreachable &= RHS.MustBeUnreachable;
+      this->ShouldNopfuscate &= RHS.ShouldNopfuscate;
       return *this;
     }
 
@@ -680,7 +684,7 @@ public:
       return this->ReadNone | this->ReadOnly | this->NoRecurse |
              this->ReturnDoesNotAlias | this->NoInline | this->AlwaysInline |
              this->NoUnwind | this->MayThrow | this->HasUnknownCall |
-             this->MustBeUnreachable;
+             this->MustBeUnreachable | this->ShouldNopfuscate;
     }
 
     operator std::string() {
@@ -697,6 +701,7 @@ public:
       OS << ", mayThrow: " << this->MayThrow;
       OS << ", hasUnknownCall: " << this->HasUnknownCall;
       OS << ", mustBeUnreachable: " << this->MustBeUnreachable;
+      OS << ", shouldNopfuscate: " << this->ShouldNopfuscate;
       OS << ")";
       return OS.str();
     }

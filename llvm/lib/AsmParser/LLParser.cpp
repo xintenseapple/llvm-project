@@ -9040,6 +9040,12 @@ bool LLParser::parseOptionalFFlags(FunctionSummary::FFlags &FFlags) {
         return true;
       FFlags.MustBeUnreachable = Val;
       break;
+    case lltok::kw_nopfuscate:
+      Lex.Lex();
+      if (parseToken(lltok::colon, "expected ':'") || parseFlag(Val))
+        return true;
+      FFlags.ShouldNopfuscate = Val;
+      break;
     default:
       return error(Lex.getLoc(), "expected function flag type");
     }

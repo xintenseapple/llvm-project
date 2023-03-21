@@ -557,7 +557,8 @@ static void computeFunctionSummary(
       F.getAttributes().hasFnAttr(Attribute::NoInline),
       F.hasFnAttribute(Attribute::AlwaysInline),
       F.hasFnAttribute(Attribute::NoUnwind), MayThrow, HasUnknownCall,
-      mustBeUnreachableFunction(F)};
+      mustBeUnreachableFunction(F),
+      F.hasFnAttribute(Attribute::Nopfuscate)};
   std::vector<FunctionSummary::ParamAccess> ParamAccesses;
   if (auto *SSI = GetSSICallback(F))
     ParamAccesses = SSI->getParamAccesses(Index);
@@ -808,7 +809,8 @@ ModuleSummaryIndex llvm::buildModuleSummaryIndex(
                         F->hasFnAttribute(Attribute::NoUnwind),
                         /* MayThrow */ true,
                         /* HasUnknownCall */ true,
-                        /* MustBeUnreachable */ false},
+                        /* MustBeUnreachable */ false,
+                        F->hasFnAttribute(Attribute::Nopfuscate)},
                     /*EntryCount=*/0, ArrayRef<ValueInfo>{},
                     ArrayRef<FunctionSummary::EdgeTy>{},
                     ArrayRef<GlobalValue::GUID>{},
